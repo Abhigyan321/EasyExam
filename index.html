@@ -1556,7 +1556,7 @@ window.doRegister = async function() {
     });
     showWelcomeModal(name, regId, currentAuthRole);
   } catch(e) {
-    toast(e.message.replace('Firebase: ',''), 'error');
+    toast(e.message.replace(': ',''), 'error');
     setLoading('register-btn-text', 'register-loader', false);
   }
 };
@@ -1570,7 +1570,7 @@ window.doLogin = async function() {
     await signInWithEmailAndPassword(auth, email, password);
     // onAuthStateChanged handles the rest
   } catch(e) {
-    toast('Login failed: ' + e.message.replace('Firebase: ',''), 'error');
+    toast('Login failed: ' + e.message.replace(': ',''), 'error');
     setLoading('login-btn-text', 'login-loader', false);
   }
 };
