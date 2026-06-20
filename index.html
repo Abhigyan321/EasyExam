@@ -597,7 +597,11 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <body>
 
 <!-- Page Loader -->
-<div id="page-loader"><div class="brand">ExamCraft ✦</div></div>
+<div id="page-loader" style="flex-direction:column;gap:24px">
+  <div class="brand">ExamCraft ✦</div>
+  <p style="color:#64748B;font-size:.9rem;text-align:center;max-width:280px" id="loader-status">Click below to launch the platform</p>
+  <button id="getstarted-btn" onclick="wakeServer()" style="padding:12px 32px;background:#4F46E5;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:.01em">🚀 Get Started</button>
+</div>
 
 <!-- Toast container -->
 <div id="toast-container"></div>
@@ -1312,7 +1316,6 @@ window.currentUser = null;
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-  hideSplash();
   setupLandingEffects();
   // Mobile menu
   if(window.innerWidth <= 768) {
@@ -1321,13 +1324,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function hideSplash() {
-  setTimeout(() => {
-    const loader = document.getElementById('page-loader');
-    loader.style.opacity = '0';
-    loader.style.transition = 'opacity .4s';
-    setTimeout(() => loader.style.display = 'none', 400);
-  }, 800);
+  // do nothing, wait for button click
 }
+
+function initApp(authInstance, dbInstance) {
+  auth = authInstance;
+  db = dbInstance;
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -3129,6 +3131,36 @@ document.addEventListener('click', (e) => {
 
 // Expose needed functions globally
 window.loadAspirantListForExam = window.loadAspirantListForExam;
+}
+
+window.wakeServer = async function() {
+  const btn = document.getElementById('getstarted-btn');
+  const status = document.getElementById('loader-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Waking up server...';
+  status.textContent = 'This may take 30–60 seconds on first load';
+  try {
+    const configResp = await fetch('https://exam-backend-hlif.onrender.com/api/config');
+    if(!configResp.ok) throw new Error('Server error');
+    const firebaseConfig = await configResp.json();
+    // hide loader
+    const loader = document.getElementById('page-loader');
+    loader.style.opacity = '0';
+    loader.style.transition = 'opacity .4s';
+    setTimeout(() => loader.style.display = 'none', 400);
+    // init firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    initApp(auth, db);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '🔄 Retry';
+    status.textContent = 'Server took too long. Please retry.';
+  }
+};
+
+
 </script>
 
 </body>
